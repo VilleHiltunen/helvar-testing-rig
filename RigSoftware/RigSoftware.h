@@ -1,3 +1,7 @@
+/*
+ * Written by Ville Hiltunen (2019) villejhiltunen@gmail.com under MIT license.
+ */
+
 #ifndef RIGSOFTWARE_H
 #define RIGSOFTWARE_H
 #include <Arduino.h>
@@ -67,6 +71,9 @@
 #define SENSOR_STEP_DELAY						1
 #define REPLY_DELAY									250
 #define HOME_DELAY									2000
+// Tweak the DR_LINE_DELAY_U to control how long we wait after setting the D/R line before actually sending
+// a command to the stepper motors. In earlier prototypes the D/R line reacted too slowly and the 
+// first bits of the message would get cut
 #define DR_LINE_DELAY_U							0
 #define SERVO_DEFAULT_DELAY_U				20000
 #define SERVO_UPPER_DELAY_U					30000
@@ -109,13 +116,13 @@
 #define MIN_ANGLE										70
 
 /*
- * XY plane stepper max and min positions.
+ * XY plane stepper max and min positions
  */
 #define X_OFFSET										0
 #define Y_OFFSET										50
 
 /*
- * Arduino mega pin offset for the 32 pin slot.
+ * Arduino mega pin offset for the 32 pin slot
  */
 #define SERVO_PIN_OFFSET						21
 /*
@@ -138,7 +145,7 @@
  * 
  * @param cmdBuffer			Pointer to the buffer to store incoming data
  * @param dataIndex			Holds the data index where to start in the buffer
- * @param newCmd				Flag whether a command has been completed and should be parsed.
+ * @param newCmd				Flag whether a command has been completed and should be parsed
  * @param errorNmbr			Holds the error code for the command listener
  */
 typedef struct 
@@ -148,8 +155,15 @@ typedef struct
 	int newCmd;
 	int errorNmbr;
 } commandInfo;
+
 /*
  * This struct holds information related to homing the XY plane
+ * 
+ * @param replyCount      Counts downwards each time a reply is read and ignores the reply. Used for homing XY-plane
+ * @param homeXFlag       Flag for x-axis homing state
+ * @param homeYFlag       Flag for y-axis homing state
+ * @param sensorHomeFlag  Flag for whether homing is in progress
+ * @param homedFlag       Flag whether the XY-plane is homed. Disallows xypos unless set
  */
 typedef struct 
 {
@@ -160,17 +174,29 @@ typedef struct
 	int homedFlag;
 } homeInfoStruct;
 /*
- * This is the ring buffer for holding commands before they are executed.
+ * This is the ring buffer for holding commands before they are executed
+ * 
+ * @param ringInputIndex    The index where the next command should be inserted
+ * @param ringOutputIndex   The index where the next command should be read
+ * @param commandCount      How many unread commands the ring buffer holds
+ * @param cmdRingBuffer     Pointer to the ring buffer. This is an array of arrays
  */
 typedef struct
 {
   int ringInputIndex;
   int ringOutputIndex;
-  int commandCount;
+  int commandCount; //TODO: Handle ring buffer overflow when commandCount > CMD_RING_BUFFER_LEN
   char cmdRingBuffer[CMD_RING_BUFFER_LEN][CMD_BUFFER_LEN];
 } ringBufferInfoStruct;
 /*
  * This struct stores the proper datafields for sending a PANdrive stepper command
+ * Note that not all fields are relevant with all commands. See PD42 firmware manual for more info
+ * 
+ * @param moduleAddress    Address of the motor. The motors are set to 1 and 2 but can be redefined using SAP
+ * @param command          The command instruction number for the motor
+ * @param commandType      The subtype of the command
+ * @param motorBank        The memory bank the command targets
+ * @param motorValue       Value field of the command
  */
 typedef struct
 {
@@ -183,7 +209,10 @@ typedef struct
 
 
 /*
- * Union for accessing the motorInfoStruct via direct byte array access.
+ * Union for accessing the motorInfoStruct via direct byte array access
+ * 
+ * @param bytes            byte access to the union
+ * @param motorInfo        the motorInfo, as defined above
  */
 typedef union {
 	byte bytes[MI_BYTE_LEN];
@@ -191,7 +220,9 @@ typedef union {
 } motorInfoUnion;
 
 /*
- * This behemoth contains the full command format definition accepted by the command functions.
+ * This behemoth contains the full command format definition accepted by the command functions
+ * 
+ * Read the detailed usage description in the main file
  */
 typedef struct {
 	int commandType;
@@ -205,7 +236,7 @@ typedef struct {
 } commandWordInfoStruct;
 
 /*
- * Struct to store information parsed out of a command.
+ * Struct to store information parsed out of a command
  */
 typedef struct 
 {
@@ -216,6 +247,17 @@ typedef struct
 
 /*
  * Struct to store all servo related things.
+ * 
+ * @param servos      An array of our Arduino defined servo objects
+ * @param pos         The angular position of each servo
+ * @param states      The direction of each servo
+ * @param slots       The field of 32 possible positions for a servo to be attached in
+ *                    -1 means it is empty, 0-9 means it is occupied with the servo from servos with the same index.
+ * @param timers      When the servo last moved an angle
+ * @param holdTimers  When the servo last went into holding
+ * @param delays      How long to wait between each angle
+ * @param holdDelays  How long to hold at the ends of the motion
+ * @param modeFlags   The hold mode of a servo. 0 means constant sway, 1 means stop at min and max angles for hold duration.
  */
 typedef struct
 {
@@ -232,6 +274,10 @@ typedef struct
 
 /*
  * Struct to store heating related things.
+ * 
+ * @param heatingPercent    What percentage of the full power we are currently heating with
+ * @param heatingActual     The percentage in an integer number from 0-255 for PWM output
+ * @param heatingFlag       Whether we are still in initial heating mode.
  */
 typedef struct
 {
@@ -246,14 +292,12 @@ typedef struct
 parseResult evaluateCommand(String incString, commandWordInfoStruct* commandWordInfo, HardwareSerial &rSerial);
 commandInfo getCommand(commandInfo info, HardwareSerial &rSerial);
 commandInfo getReply(commandInfo info, HardwareSerial &rSerial);
-int parseMotorReply(char *outBuffer, char *inBuffer);
 void sendMotorCommand(unsigned long *timers, parseResult &result, commandWordInfoStruct *commandWordInfo);
 void sendServoCommand(unsigned long *timers, parseResult &result, commandWordInfoStruct *commandWordInfo, servoInfoStruct &servoInfo, HardwareSerial &rSerial);
 void sendSensorCommand(unsigned long *timers, parseResult &result, commandWordInfoStruct *commandWordInfo, int *sensorTasklist, HardwareSerial &rSerial);
-void sendHeatingCommand(unsigned long *timers, heatingInfoStruct &heatingInfo, parseResult &result, commandWordInfoStruct *commandWordInfo, HardwareSerial &rSerial);
+void sendHeatingCommand(unsigned long *timers, parseResult &result, commandWordInfoStruct *commandWordInfo, heatingInfoStruct &heatingInfo, HardwareSerial &rSerial);
 void sendControlCommand(unsigned long *timers, parseResult result, commandWordInfoStruct *commandWordInfo, ringBufferInfoStruct &ringBufferInfo, HardwareSerial &rSerial, homeInfoStruct &homeInfo, int *sensorTasklist);
-parseResult parseCommandString(String cmdString, int nbrOfArgs, int stringLen);
-//int parseAndSendUserCommand(String incCommand, HardwareSerial &rSerial, int *tasklist, unsigned long *timers, servoInfoStruct &servoInfo, heatingStruct &heatingInfo);
+parseResult parseCommandString(String cmdString, int nbrOfArgs, int stringLen, int cmdWordLen);
 void displayReply(commandInfo replyInfo, HardwareSerial &rSerial);
 void sensorLoop(int *tasklist, unsigned long *timers, homeInfoStruct &homeInfo, HardwareSerial &rSerial);
 void servoLoop(servoInfoStruct &servoInfo, unsigned long *timers);

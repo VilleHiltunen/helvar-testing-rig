@@ -1,5 +1,6 @@
 EESchema Schematic File Version 4
-EELAYER 26 0
+LIBS:MegaShield-cache
+EELAYER 29 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -81,23 +82,23 @@ Y_RL
 $Comp
 L Device:R R1
 U 1 1 5D5D8AFC
-P 1500 4050
-F 0 "R1" V 1707 4050 50  0000 C CNN
-F 1 "R" V 1616 4050 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 1430 4050 50  0001 C CNN
-F 3 "~" H 1500 4050 50  0001 C CNN
-	1    1500 4050
+P 1550 4250
+F 0 "R1" V 1757 4250 50  0000 C CNN
+F 1 "10k" V 1666 4250 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 1480 4250 50  0001 C CNN
+F 3 "~" H 1550 4250 50  0001 C CNN
+	1    1550 4250
 	0    -1   -1   0   
 $EndComp
 $Comp
 L Transistor_BJT:2N2219 Q1
 U 1 1 5D5D8D79
-P 1900 4050
-F 0 "Q1" H 2091 4096 50  0000 L CNN
-F 1 "2N2219" H 2091 4005 50  0000 L CNN
-F 2 "Quickprints:BJT" H 2100 3975 50  0001 L CIN
-F 3 "http://www.onsemi.com/pub_link/Collateral/2N2219-D.PDF" H 1900 4050 50  0001 L CNN
-	1    1900 4050
+P 1900 4250
+F 0 "Q1" H 2091 4296 50  0000 L CNN
+F 1 "2N3904" H 2091 4205 50  0000 L CNN
+F 2 "Quickprints:BJT" H 2100 4175 50  0001 L CIN
+F 3 "http://www.onsemi.com/pub_link/Collateral/2N2219-D.PDF" H 1900 4250 50  0001 L CNN
+	1    1900 4250
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -178,20 +179,14 @@ Wire Wire Line
 Connection ~ 2300 2200
 Wire Wire Line
 	2300 2200 1850 2200
-Text GLabel 2300 2850 3    50   Input ~ 0
+Text GLabel 1350 6500 0    50   Input ~ 0
 GND
-Wire Wire Line
-	2300 2850 2300 2700
-Text GLabel 1200 4050 0    50   Input ~ 0
+Text GLabel 1250 4250 0    50   Input ~ 0
 HEAT
 Wire Wire Line
-	1650 4050 1700 4050
-Wire Wire Line
-	1350 4050 1200 4050
-Text GLabel 3350 5100 0    50   Input ~ 0
+	1400 4250 1250 4250
+Text GLabel 3850 5300 0    50   Input ~ 0
 GND
-Wire Wire Line
-	3350 5100 3500 5100
 Text GLabel 3200 5700 0    50   Input ~ 0
 5V
 Wire Wire Line
@@ -201,7 +196,7 @@ L pspice:MPMOS M1
 U 1 1 5D5DC1F0
 P 3100 3900
 F 0 "M1" H 3387 3946 50  0000 L CNN
-F 1 "MPMOS" H 3387 3855 50  0000 L CNN
+F 1 "FQP27P06" H 3387 3855 50  0000 L CNN
 F 2 "Quickprints:MOSFET" H 3100 3900 50  0001 C CNN
 F 3 "" H 3100 3900 50  0001 C CNN
 	1    3100 3900
@@ -210,43 +205,19 @@ $EndComp
 $Comp
 L Device:R R2
 U 1 1 5D5DC6B2
-P 2000 3550
-F 0 "R2" H 1930 3504 50  0000 R CNN
-F 1 "R" H 1930 3595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 1930 3550 50  0001 C CNN
-F 3 "~" H 2000 3550 50  0001 C CNN
-	1    2000 3550
+P 2000 3650
+F 0 "R2" H 1930 3604 50  0000 R CNN
+F 1 "1k" H 1930 3695 50  0000 R CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 1930 3650 50  0001 C CNN
+F 3 "~" H 2000 3650 50  0001 C CNN
+	1    2000 3650
 	-1   0    0    1   
 $EndComp
 NoConn ~ 3300 3700
-Text GLabel 2800 3200 1    50   Input ~ 0
+Text GLabel 1350 7000 0    50   Input ~ 0
 12V
-Wire Wire Line
-	2000 3700 2000 3800
 Text GLabel 2000 4950 3    50   Input ~ 0
 GND
-Wire Wire Line
-	2000 4250 2000 4950
-Wire Wire Line
-	3200 3700 3200 3300
-Wire Wire Line
-	3200 3300 2800 3300
-Wire Wire Line
-	2000 3300 2000 3400
-Wire Wire Line
-	2800 3300 2800 3200
-Connection ~ 2800 3300
-Wire Wire Line
-	2800 3300 2500 3300
-Wire Wire Line
-	2000 3800 2750 3800
-Wire Wire Line
-	2750 3800 2750 3900
-Wire Wire Line
-	2750 3900 2900 3900
-Connection ~ 2000 3800
-Wire Wire Line
-	2000 3800 2000 3850
 $Comp
 L pspice:DIODE D1
 U 1 1 5D5DEE99
@@ -266,15 +237,12 @@ Wire Wire Line
 	3200 4150 3200 4100
 Wire Wire Line
 	3500 4700 3500 5100
-Connection ~ 3500 5100
-Wire Wire Line
-	3500 5100 3950 5100
 $Comp
 L Connector:Conn_01x01_Male J5
 U 1 1 5D5DFF2E
 P 3200 4650
-F 0 "J5" V 3353 4563 50  0000 R CNN
-F 1 "HeatingPad" V 3262 4563 50  0000 R CNN
+F 0 "J5" V 3300 4950 50  0000 R CNN
+F 1 "HeatingOut" V 3200 5150 50  0000 R CNN
 F 2 "Quickprints:VinPad" H 3200 4650 50  0001 C CNN
 F 3 "~" H 3200 4650 50  0001 C CNN
 	1    3200 4650
@@ -287,28 +255,6 @@ Text GLabel 3000 2600 3    50   Input ~ 0
 5V
 Text GLabel 3000 1500 1    50   Input ~ 0
 GND
-$Comp
-L Connector:Conn_01x02_Male J6
-U 1 1 5D5E1FD4
-P 3300 2950
-F 0 "J6" V 3360 2990 50  0000 L CNN
-F 1 "Xpow" V 3451 2990 50  0000 L CNN
-F 2 "Quickprints:2_2.54" H 3300 2950 50  0001 C CNN
-F 3 "~" H 3300 2950 50  0001 C CNN
-	1    3300 2950
-	0    1    1    0   
-$EndComp
-$Comp
-L Connector:Conn_01x02_Male J2
-U 1 1 5D5E2052
-P 1600 2900
-F 0 "J2" V 1660 2940 50  0000 L CNN
-F 1 "Ypow" V 1751 2940 50  0000 L CNN
-F 2 "Quickprints:2_2.54" H 1600 2900 50  0001 C CNN
-F 3 "~" H 1600 2900 50  0001 C CNN
-	1    1600 2900
-	0    1    1    0   
-$EndComp
 $Comp
 L Connector:Conn_01x16_Female J11
 U 1 1 5D5E292E
@@ -372,22 +318,6 @@ Wire Wire Line
 	8300 3250 7800 3250
 Wire Wire Line
 	8300 3150 7850 3150
-Wire Wire Line
-	3200 3300 3300 3300
-Wire Wire Line
-	3300 3300 3300 3150
-Connection ~ 3200 3300
-Wire Wire Line
-	2000 3300 2000 3100
-Wire Wire Line
-	2000 3100 1600 3100
-Connection ~ 2000 3300
-Text GLabel 1500 3100 3    50   Input ~ 0
-GND
-Text GLabel 3200 3200 0    50   Input ~ 0
-GND
-Wire Wire Line
-	3200 3200 3200 3150
 NoConn ~ 3950 5600
 $Comp
 L Connector:Conn_01x01_Male J4
@@ -420,7 +350,7 @@ Text GLabel 6550 2500 2    50   Input ~ 0
 X_LL
 Text GLabel 6550 2600 2    50   Input ~ 0
 Y_RL
-Text GLabel 6550 1700 2    50   Input ~ 0
+Text GLabel 6550 2800 2    50   Input ~ 0
 HEAT
 Text GLabel 6550 2700 2    50   Input ~ 0
 Y_LL
@@ -470,7 +400,6 @@ Wire Wire Line
 Wire Wire Line
 	8000 5000 8000 5250
 Connection ~ 7900 5000
-NoConn ~ 6550 2800
 $Comp
 L Connector:Conn_01x06_Male J8
 U 1 1 5D618D16
@@ -514,23 +443,6 @@ NoConn ~ 6550 5700
 NoConn ~ 6550 5800
 NoConn ~ 6550 5900
 NoConn ~ 6550 6000
-$Comp
-L pspice:CAP C1
-U 1 1 5D63F215
-P 1550 3550
-F 0 "C1" V 1865 3550 50  0000 C CNN
-F 1 "CAP" V 1774 3550 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" H 1550 3550 50  0001 C CNN
-F 3 "" H 1550 3550 50  0001 C CNN
-	1    1550 3550
-	0    -1   -1   0   
-$EndComp
-Wire Wire Line
-	1800 3550 1800 3300
-Wire Wire Line
-	1800 3300 2000 3300
-Text GLabel 1300 3550 0    50   Input ~ 0
-GND
 Wire Wire Line
 	3600 2000 3750 2000
 Wire Wire Line
@@ -543,7 +455,6 @@ Wire Wire Line
 	3400 2200 3850 2200
 Wire Wire Line
 	3950 5200 3950 5100
-Connection ~ 3950 5100
 Wire Wire Line
 	3950 5300 3950 5200
 Connection ~ 3950 5200
@@ -560,19 +471,102 @@ Wire Wire Line
 	3950 5900 3950 5800
 Connection ~ 3950 5800
 $Comp
-L Connector:Conn_01x01_Male J?
+L Connector:Conn_01x01_Male J7
 U 1 1 5D64F22F
-P 2500 3000
-F 0 "J?" V 2560 3041 50  0000 L CNN
-F 1 "12V_VIN" V 2651 3041 50  0000 L CNN
-F 2 "Quickprints:VinPad" H 2500 3000 50  0001 C CNN
-F 3 "~" H 2500 3000 50  0001 C CNN
-	1    2500 3000
+P 8450 2000
+F 0 "J7" V 8510 2041 50  0000 L CNN
+F 1 "12V_VIN" V 8601 2041 50  0000 L CNN
+F 2 "Quickprints:VinPad" H 8450 2000 50  0001 C CNN
+F 3 "~" H 8450 2000 50  0001 C CNN
+	1    8450 2000
 	0    1    1    0   
 $EndComp
+NoConn ~ 6550 1700
+$Comp
+L Connector:Conn_01x02_Male J6
+U 1 1 5D5E1FD4
+P 3000 6750
+F 0 "J6" H 3050 6800 50  0000 L CNN
+F 1 "Xpow" H 3000 6850 50  0000 L CNN
+F 2 "Quickprints:2_2.54" H 3000 6750 50  0001 C CNN
+F 3 "~" H 3000 6750 50  0001 C CNN
+	1    3000 6750
+	-1   0    0    1   
+$EndComp
+$Comp
+L Connector:Conn_01x02_Male J2
+U 1 1 5D5E2052
+P 2500 6750
+F 0 "J2" H 2550 6800 50  0000 L CNN
+F 1 "Ypow" H 2500 6850 50  0000 L CNN
+F 2 "Quickprints:2_2.54" H 2500 6750 50  0001 C CNN
+F 3 "~" H 2500 6750 50  0001 C CNN
+	1    2500 6750
+	-1   0    0    1   
+$EndComp
 Wire Wire Line
-	2500 3200 2500 3300
-Connection ~ 2500 3300
+	2300 6650 2300 6500
+$Comp
+L pspice:CAP C1
+U 1 1 5D63F215
+P 1900 6750
+F 0 "C1" H 2100 6850 50  0000 C CNN
+F 1 "47u" H 2124 6750 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" H 1900 6750 50  0001 C CNN
+F 3 "" H 1900 6750 50  0001 C CNN
+	1    1900 6750
+	1    0    0    -1  
+$EndComp
+Connection ~ 1900 6500
 Wire Wire Line
-	2500 3300 2000 3300
+	1900 6500 1350 6500
+Wire Wire Line
+	1350 7000 1900 7000
+Wire Wire Line
+	1900 6500 2300 6500
+Wire Wire Line
+	1900 7000 2300 7000
+Connection ~ 1900 7000
+Wire Wire Line
+	2300 6750 2300 7000
+Wire Wire Line
+	2000 4950 2000 4450
+Wire Wire Line
+	2000 4050 2000 3900
+Wire Wire Line
+	2000 3900 2900 3900
+Wire Wire Line
+	2000 3800 2000 3900
+Connection ~ 2000 3900
+Text GLabel 8450 2400 3    50   Input ~ 0
+12V
+Wire Wire Line
+	8450 2400 8450 2200
+Wire Wire Line
+	3850 5300 3950 5300
+Text GLabel 3500 5100 3    50   Input ~ 0
+GND
+Text GLabel 2300 2800 3    50   Input ~ 0
+GND
+Wire Wire Line
+	2300 2700 2300 2800
+Text GLabel 3200 3300 1    50   Input ~ 0
+12V
+Wire Wire Line
+	2000 3500 3200 3500
+Wire Wire Line
+	3200 3500 3200 3700
+Wire Wire Line
+	3200 3300 3200 3500
+Connection ~ 3200 3500
+Wire Wire Line
+	2300 7000 2800 7000
+Wire Wire Line
+	2800 7000 2800 6750
+Connection ~ 2300 7000
+Wire Wire Line
+	2800 6650 2800 6500
+Wire Wire Line
+	2800 6500 2300 6500
+Connection ~ 2300 6500
 $EndSCHEMATC

@@ -1,11 +1,11 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# Connector:Conn_01x01_Male
+# Connector_Conn_01x01_Male
 #
-DEF Connector:Conn_01x01_Male J 0 40 Y N 1 F N
+DEF Connector_Conn_01x01_Male J 0 40 Y N 1 F N
 F0 "J" 0 100 50 H V C CNN
-F1 "Connector:Conn_01x01_Male" 0 -100 50 H V C CNN
+F1 "Connector_Conn_01x01_Male" 0 -100 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -18,11 +18,11 @@ X Pin_1 1 200 0 150 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Connector:Conn_01x02_Male
+# Connector_Conn_01x02_Male
 #
-DEF Connector:Conn_01x02_Male J 0 40 Y N 1 F N
+DEF Connector_Conn_01x02_Male J 0 40 Y N 1 F N
 F0 "J" 0 100 50 H V C CNN
-F1 "Connector:Conn_01x02_Male" 0 -200 50 H V C CNN
+F1 "Connector_Conn_01x02_Male" 0 -200 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -38,11 +38,11 @@ X Pin_2 2 200 -100 150 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Connector:Conn_01x04_Male
+# Connector_Conn_01x04_Male
 #
-DEF Connector:Conn_01x04_Male J 0 40 Y N 1 F N
+DEF Connector_Conn_01x04_Male J 0 40 Y N 1 F N
 F0 "J" 0 200 50 H V C CNN
-F1 "Connector:Conn_01x04_Male" 0 -300 50 H V C CNN
+F1 "Connector_Conn_01x04_Male" 0 -300 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -64,11 +64,11 @@ X Pin_4 4 200 -200 150 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Connector:Conn_01x06_Male
+# Connector_Conn_01x06_Male
 #
-DEF Connector:Conn_01x06_Male J 0 40 Y N 1 F N
+DEF Connector_Conn_01x06_Male J 0 40 Y N 1 F N
 F0 "J" 0 300 50 H V C CNN
-F1 "Connector:Conn_01x06_Male" 0 -400 50 H V C CNN
+F1 "Connector_Conn_01x06_Male" 0 -400 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -96,11 +96,11 @@ X Pin_6 6 200 -300 150 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Connector:Conn_01x16_Female
+# Connector_Conn_01x16_Female
 #
-DEF Connector:Conn_01x16_Female J 0 40 Y N 1 F N
+DEF Connector_Conn_01x16_Female J 0 40 Y N 1 F N
 F0 "J" 0 800 50 H V C CNN
-F1 "Connector:Conn_01x16_Female" 0 -900 50 H V C CNN
+F1 "Connector_Conn_01x16_Female" 0 -900 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -158,11 +158,11 @@ X Pin_9 9 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Device:R
+# Device_R
 #
-DEF Device:R R 0 0 N Y 1 F N
+DEF Device_R R 0 0 N Y 1 F N
 F0 "R" 80 0 50 V V C CNN
-F1 "Device:R" 0 0 50 V V C CNN
+F1 "Device_R" 0 0 50 V V C CNN
 F2 "" -70 0 50 V I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -175,11 +175,11 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Interface_UART:MAX1487E
+# Interface_UART_MAX1487E
 #
-DEF Interface_UART:MAX1487E U 0 20 Y Y 1 F N
+DEF Interface_UART_MAX1487E U 0 20 Y Y 1 F N
 F0 "U" -240 450 50 H V C CNN
-F1 "Interface_UART:MAX1487E" 30 450 50 H V L CNN
+F1 "Interface_UART_MAX1487E" 30 450 50 H V L CNN
 F2 "" 0 -700 50 H I C CNN
 F3 "" 0 50 50 H I C CNN
 ALIAS MAX483E MAX485E MAX487E MAX1487E MAX3485 MAX3483 MAX3486
@@ -215,11 +215,11 @@ X VCC 8 0 500 100 D 50 50 1 1 W
 ENDDRAW
 ENDDEF
 #
-# Transistor_BJT:2N2219
+# Transistor_BJT_2N2219
 #
-DEF Transistor_BJT:2N2219 Q 0 0 Y N 1 F N
+DEF Transistor_BJT_2N2219 Q 0 0 Y N 1 F N
 F0 "Q" 200 75 50 H V L CNN
-F1 "Transistor_BJT:2N2219" 200 0 50 H V L CNN
+F1 "Transistor_BJT_2N2219" 200 0 50 H V L CNN
 F2 "Package_TO_SOT_THT:TO-39-3" 200 -75 50 H I L CIN
 F3 "" 0 0 50 H I L CNN
 ALIAS BC140 BC141
@@ -238,11 +238,11 @@ X C 3 100 200 100 D 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# arduino:Arduino_Mega2560_Shield
+# arduino_Arduino_Mega2560_Shield
 #
-DEF arduino:Arduino_Mega2560_Shield XA 0 40 Y Y 1 F N
+DEF arduino_Arduino_Mega2560_Shield XA 0 40 Y Y 1 F N
 F0 "XA" 100 0 60 V V C CNN
-F1 "arduino:Arduino_Mega2560_Shield" -100 0 60 V V C CNN
+F1 "arduino_Arduino_Mega2560_Shield" -100 0 60 V V C CNN
 F2 "" 700 2750 60 H I C CNN
 F3 "" 700 2750 60 H I C CNN
 $FPLIST
@@ -385,11 +385,11 @@ X VIN VIN -1300 -2150 300 R 50 50 1 1 W
 ENDDRAW
 ENDDEF
 #
-# pspice:CAP
+# pspice_CAP
 #
-DEF pspice:CAP C 0 10 Y Y 1 F N
+DEF pspice_CAP C 0 10 Y Y 1 F N
 F0 "C" 100 150 50 V V C CNN
-F1 "pspice:CAP" 100 -150 50 V V C CNN
+F1 "pspice_CAP" 100 -150 50 V V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 ALIAS C
@@ -401,11 +401,11 @@ X ~ 2 0 -250 200 U 40 40 1 1 P
 ENDDRAW
 ENDDEF
 #
-# pspice:DIODE
+# pspice_DIODE
 #
-DEF pspice:DIODE D 0 40 Y N 1 F N
+DEF pspice_DIODE D 0 40 Y N 1 F N
 F0 "D" 0 150 50 H V C CNN
-F1 "pspice:DIODE" 0 -175 50 H V C CNN
+F1 "pspice_DIODE" 0 -175 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -416,11 +416,11 @@ X A 2 200 0 150 L 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #
-# pspice:MPMOS
+# pspice_MPMOS
 #
-DEF pspice:MPMOS M 0 0 Y Y 1 F N
+DEF pspice_MPMOS M 0 0 Y Y 1 F N
 F0 "M" 300 50 50 H V L CNN
-F1 "pspice:MPMOS" 300 -50 50 H V L CNN
+F1 "pspice_MPMOS" 300 -50 50 H V L CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW

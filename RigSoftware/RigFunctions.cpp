@@ -1,85 +1,9 @@
+/*
+ * Written by Ville Hiltunen (2019) villejhiltunen@gmail.com under MIT license.
+ */
+
 #include "RigSoftware.h"
 #include <Arduino.h>
-
-/*
- * Function for handling type 5 commands, which is the group for core user functions that don't fit in the other categories.
- */
-void sendControlCommand(unsigned long *timers, parseResult result, commandWordInfoStruct *commandWordInfo, ringBufferInfoStruct &ringBufferInfo, HardwareSerial &rSerial, homeInfoStruct &homeInfo, int *sensorTasklist) {
-	String cmdWord = commandWordInfo[result.commandIndex].commandWord;
-	if (cmdWord == "homexy") {
-    // Command to home the XY plane. This function has conditionals in the xy
-		// Note: The ringbuffer is flushed and no new commands will be accepted while homing.
-		ringBufferInfo.commandCount = 0;
-		ringBufferInfo.ringInputIndex = 0;
-		ringBufferInfo.ringOutputIndex = 0;
-		injectCommand(ringBufferInfo,"rfs(1,0)");
-		injectCommand(ringBufferInfo,"rfs(2,0)");
-		homeInfo.replyCount = 2;
-		homeInfo.homeXFlag = 1;
-		// After homing is done this allows xypos command
-		homeInfo.homedFlag = 1;
-	}
-	else if (cmdWord == "homesen") {
-    // Homes sensor head to 0.
-		homeInfo.sensorHomeFlag = 1;
-		sensorTasklist[SENSOR_STEPS] = -30000;
-	}
-	else if (cmdWord == "xypos") {
-    // Xypos breaks down the position to separate X and Y move commands.
-    // This function is not allowed until the device is homed.
-    // BUG: If the steppers were unresponsive during "homexy" command, the machine will
-    //      still consider itself homed.
-		if (homeInfo.homedFlag) {
-			String command1_1 = "mvp(1,";
-			String command2_1 = "mvp(2,";
-			String command2 = ")";
-			String full;
-			char tempHolder[CMD_BUFFER_LEN] = {0};
-			full = command1_1 + (long)(((float)(result.args[0] + X_OFFSET)) * STEPS_TO_MM) + command2;
-			full.toCharArray(tempHolder,CMD_BUFFER_LEN);
-			rSerial.println("Sending the following PANdrive commands:");
-			injectCommand(ringBufferInfo,tempHolder);
-			rSerial.println(full);
-			full = command2_1 + (long)(((float)(result.args[1] + Y_OFFSET)) * STEPS_TO_MM) + command2;
-			full.toCharArray(tempHolder,CMD_BUFFER_LEN);
-			rSerial.println(full);
-			injectCommand(ringBufferInfo,tempHolder);
-			rSerial.print("Moving to position (");
-			rSerial.print(result.args[0]);
-			rSerial.print(",");
-			rSerial.print(result.args[1]);
-			rSerial.println(").");
-		}
-		else {
-			rSerial.println("Command refused. Please home the device before using the homexy command.");
-		}
-	}
-	else if (cmdWord == "help") {
-		rSerial.println("Input commands by typing command, followed by");
-		rSerial.println("the arguments separated by commas.");
-		rSerial.println("Example command: \"xypos(200,100)\"");
-		rSerial.println("Printing commands with the related");
-		rSerial.println("number of args and their constraints");
-		rSerial.println("See documentation for full description.");
-		for (int i = 0; i < COMMAND_LIST_SIZE; i++) {
-			rSerial.print(commandWordInfo[i].commandWord);
-			rSerial.print(" # of args: ");
-			rSerial.println(commandWordInfo[i].numOfArgs);
-			if (commandWordInfo[i].numOfArgs > 0) {
-				for (int j = 0; j < commandWordInfo[i].numOfArgs; j++) {
-					rSerial.print("Arg ");
-					rSerial.print(j);
-					rSerial.print(" constraints: [");
-					rSerial.print(commandWordInfo[i].lowerConst[j]);
-					rSerial.print(",");
-					rSerial.print(commandWordInfo[i].upperConst[j]);
-					rSerial.println("]");
-				}
-			}
-			rSerial.println("----------------");
-		}	
-	}
-}
 
 /*
  * Function to loop through computer -> Arduino serial connection
@@ -109,60 +33,151 @@ commandInfo getCommand(commandInfo info, HardwareSerial &rSerial)
   return info;
 }
 
-/*
- * Function to loop through stepper driver -> Arduino serial
- * 
- * The function appends serial input to a buffer until a newline
- * character is met, which causes the newCmd flag to be set and
- * the buffer index to reset. See getCommandInfo in RigSoftware.h.
- */
-commandInfo getReply(commandInfo info, HardwareSerial &rSerial)
-{
-  char currentByte = 0;
-	while(rSerial.available() > 0)
-  {
-  	if (info.dataIndex > CMD_BUFFER_LEN - 2) {
-  		info.errorNmbr = E_BUFFER_FULL;
-  		return info;
-  	}
-  	currentByte = rSerial.read();
-    info.cmdBuffer[info.dataIndex] = currentByte;
-    info.dataIndex++;
-    if (info.dataIndex == STEPPER_LEN) {
-    	info.newCmd = 1;
-    	//info.dataIndex = 0;
-    	int checksum = 0;
-    	for (int i = 0; i < STEPPER_LEN - 1; i++) {
-    		checksum += info.cmdBuffer[i];
-    		//Serial.println(info.cmdBuffer[i],DEC);
-    	}
-    	/*
-    	Serial.println("CheckSums");
-    	Serial.println(checksum,DEC);
-    	Serial.println(info.cmdBuffer[STEPPERLEN - 1],DEC);
-    	Serial.println(info.cmdBuffer[STEPPERLEN],DEC);
-    	*/
-    	if (checksum != info.cmdBuffer[STEPPER_LEN - 1]) {
-    		info.errorNmbr = E_CHECKSUM_OFF;
-        rSerial.println("Checksum was off");
-    	}
-    }
+// This function inserts commands to the ringbuffer. This is used all around to peacefully add commands to execute regardless of where it's called.
+void injectCommand(ringBufferInfoStruct &ri, char *command) {
+  strcpy(ri.cmdRingBuffer[ri.ringInputIndex],command);
+  ri.ringInputIndex += 1;
+  if (ri.ringInputIndex >= CMD_RING_BUFFER_LEN) {
+    ri.ringInputIndex = 0;
   }
-  return info;
+  ri.commandCount += 1;
+}
+
+// Grab a command from the ring buffer.
+String grabRingBufferCommand(ringBufferInfoStruct &ri) {
+  String incCommand = String(ri.cmdRingBuffer[ri.ringOutputIndex]);
+  ri.ringOutputIndex += 1;
+  if (ri.ringOutputIndex >= CMD_RING_BUFFER_LEN) {
+    ri.ringOutputIndex = 0;
+  }
+  ri.commandCount -= 1;
+  return incCommand;
 }
 
 /*
- * Function to parse a reply from a Pandrive stepper motor
+ * The command preparser. Some checking to see that the command word and the constraints match.
  */
-int parseMotorReply(char *outBuffer, char *inBuffer)
-{
-  for (int i = 0; i < STEPPER_LEN; i++) {
-    outBuffer[i] = inBuffer[i];
-  } 
-  if(inBuffer[STEPPER_LEN] != '\r') {
-    return 1;
+parseResult evaluateCommand(String incString, commandWordInfoStruct* commandWordInfo, HardwareSerial &rSerial) {
+  incString.trim();
+  incString.toLowerCase();
+  parseResult result;
+  for (int i = 0; i < COMMAND_LIST_SIZE; i++) {
+    if (incString.substring(0,commandWordInfo[i].commandWordLen) == commandWordInfo[i].commandWord) {
+      rSerial.print("Command word detected: ");
+      rSerial.println(commandWordInfo[i].commandWord);
+      result = parseCommandString(incString, commandWordInfo[i].numOfArgs, incString.length(),commandWordInfo[i].commandWordLen);
+      if (result.errorStatus) {
+        return result;
+      }
+      result.commandIndex = i;
+      for (int j = 0; j < commandWordInfo[i].numOfArgs; j++) {
+        if (commandWordInfo[i].lowerConst[j] > result.args[j] || commandWordInfo[i].upperConst[j] < result.args[j]) {
+          result.errorStatus = E_CONSTRAINT;
+          rSerial.print("Value given for argument: ");
+          rSerial.print(j,DEC);
+          rSerial.println(" was off.");
+          rSerial.println("Constraints:");
+          rSerial.print("Lower: ");
+          rSerial.println(commandWordInfo[i].lowerConst[j]);
+          rSerial.print("Upper: ");
+          rSerial.println(commandWordInfo[i].upperConst[j]);
+          rSerial.print("Input was: ");
+          rSerial.println(result.args[j]);
+          return result;
+        }
+      }
+      return result;
+    }
   }
-  return 0;
+  result.errorStatus = E_NOTFOUND;
+  rSerial.println("Command not found.");
+  return result;
+}
+
+/*
+ * This function parses the contents between the ( and ) after a command. It counts the commas and returns every argument in
+ * between them. The amount of arguments needs to match the command in the command list, lest it is banished to the shadow realm.
+ */
+parseResult parseCommandString(String cmdString, int nbrOfArgs, int stringLen, int cmdWordLen) {
+  parseResult result = {0};
+  if ((stringLen >= cmdWordLen) && (nbrOfArgs > 0)) {
+    int startIndex = cmdString.indexOf('(');
+    int endIndex = cmdString.indexOf(')');
+    /*
+    Serial.print("first pass");
+    Serial.print('\t');
+    Serial.print(currentIndex);
+    Serial.print('\t');
+    Serial.println(endIndex);
+    Serial.print("first pass");
+    Serial.print('\t');
+    Serial.print(cmdString.lastIndexOf(')'));
+    Serial.print('\t');
+    Serial.println(cmdString.lastIndexOf('('));
+    */
+    // Check that we have braces in our command and that there is only one set.
+    if (  endIndex > startIndex
+        && nbrOfArgs <= MAX_ARGS
+        && endIndex > 0 
+        && startIndex > 0
+        && endIndex == (cmdString.lastIndexOf(')'))
+        && startIndex == (cmdString.lastIndexOf('('))) {
+      int pivotIndex = 0;
+      int precheckIndex = 0;
+      int separatorCount = 0;   
+      // Loop through the content between braces and count the commas
+      while ((pivotIndex = cmdString.substring(startIndex,endIndex).indexOf(',',precheckIndex)) > 0) {  
+        separatorCount += 1;
+        precheckIndex = pivotIndex + 1;
+      }
+      // We must have exactly one less delimiter than total arguments
+      if (separatorCount == nbrOfArgs - 1) {                
+        int currentIndex = startIndex + 1;
+        String argString;
+        // Loop through the command, reading the values separated by commas
+        for (int i = 0; i < nbrOfArgs; i++) {
+          pivotIndex = cmdString.indexOf(',',currentIndex);         
+          if (pivotIndex < 0 && i == nbrOfArgs - 1) {
+            // Check if we are dealing with the last argument
+              argString = cmdString.substring(currentIndex,endIndex);
+          }
+          else if (pivotIndex > 0 && pivotIndex > currentIndex) {
+              //Otherwise we are dealing with a normal argument.
+              argString = cmdString.substring(currentIndex,pivotIndex);
+          }         
+          else {
+            // Something went wrong. Raise error flag and return.
+            result.errorStatus = E_COMMAND_MALFORMED;
+            return result;
+          }
+          for (int j = 0; j < argString.length(); j++) {
+            // Iterate over the argument canditate. If it has non digits reject it and raise error.
+            if (j == 0 && (isDigit(argString[j]) || argString[j] == '-')) {
+              ;
+            }
+            else if (isDigit(argString[j])) {
+              ;
+            }
+            else {
+              result.errorStatus = E_COMMAND_MALFORMED;
+              return result;
+            }
+          }
+          long argVal = argString.toInt();
+          result.args[i] = argVal;
+          currentIndex = pivotIndex + 1;
+          
+        }
+      }
+      else {
+        result.errorStatus = E_COMMAND_MALFORMED;
+      }
+    }
+    else {
+      result.errorStatus = E_COMMAND_MALFORMED;
+    }
+  }
+  return result;
 }
 
 /*
@@ -210,131 +225,6 @@ void sendMotorCommand(unsigned long *timers, parseResult &result, commandWordInf
 	timers[REPLY_TIMER] = millis();
 }
 
-/*
- * This function parses the contents between the ( and ) after a command. It counts the commas and returns every argument in
- * between them. The amount of arguments needs to match the command in the command list, lest it is banished to the shadow realm.
- */
-parseResult parseCommandString(String cmdString, int nbrOfArgs, int stringLen, int cmdWordLen) {
-	parseResult result = {0};
-	if ((stringLen >= cmdWordLen) && (nbrOfArgs > 0)) {
-		int startIndex = cmdString.indexOf('(');
-		int endIndex = cmdString.indexOf(')');
-		/*
-		Serial.print("first pass");
-		Serial.print('\t');
-		Serial.print(currentIndex);
-		Serial.print('\t');
-		Serial.println(endIndex);
-		Serial.print("first pass");
-		Serial.print('\t');
-		Serial.print(cmdString.lastIndexOf(')'));
-		Serial.print('\t');
-		Serial.println(cmdString.lastIndexOf('('));
-		*/
-		// Check that we have braces in our command and that there is only one set.
-		if (	endIndex > startIndex
-				&& nbrOfArgs <= MAX_ARGS
-				&& endIndex > 0 
-				&& startIndex > 0
-				&& endIndex == (cmdString.lastIndexOf(')'))
-				&& startIndex == (cmdString.lastIndexOf('('))) {
-			int pivotIndex = 0;
-			int precheckIndex = 0;
-			int separatorCount = 0;		
-			// Loop through the content between braces and count the commas
-			while ((pivotIndex = cmdString.substring(startIndex,endIndex).indexOf(',',precheckIndex)) > 0) {	
-				separatorCount += 1;
-				precheckIndex = pivotIndex + 1;
-			}
-			// We must have exactly one less delimiter than total arguments
-			if (separatorCount == nbrOfArgs - 1) {								
-				int currentIndex = startIndex + 1;
-				String argString;
-				// Loop through the command, reading the values separated by commas
-				for (int i = 0; i < nbrOfArgs; i++) {
-					pivotIndex = cmdString.indexOf(',',currentIndex);					
-					if (pivotIndex < 0 && i == nbrOfArgs - 1) {
-						// Check if we are dealing with the last argument
-							argString = cmdString.substring(currentIndex,endIndex);
-					}
-					else if (pivotIndex > 0 && pivotIndex > currentIndex) {
-							//Otherwise we are dealing with a normal argument.
-							argString = cmdString.substring(currentIndex,pivotIndex);
-					}					
-					else {
-						// Something went wrong. Raise error flag and return.
-						result.errorStatus = E_COMMAND_MALFORMED;
-						return result;
-					}
-					for (int j = 0; j < argString.length(); j++) {
-						// Iterate over the argument canditate. If it has non digits reject it and raise error.
-						if (j == 0 && (isDigit(argString[j]) || argString[j] == '-')) {
-							;
-						}
-						else if (isDigit(argString[j])) {
-							;
-						}
-						else {
-							result.errorStatus = E_COMMAND_MALFORMED;
-							return result;
-						}
-					}
-					long argVal = argString.toInt();
-					result.args[i] = argVal;
-					currentIndex = pivotIndex + 1;
-					
-				}
-			}
-			else {
-				result.errorStatus = E_COMMAND_MALFORMED;
-			}
-		}
-		else {
-			result.errorStatus = E_COMMAND_MALFORMED;
-		}
-	}
-	return result;
-}
-
-/*
- * The command preparser. Some checking to see that the command word and the constraints match.
- */
-parseResult evaluateCommand(String incString, commandWordInfoStruct* commandWordInfo, HardwareSerial &rSerial) {
-	incString.trim();
-	incString.toLowerCase();
-	parseResult result;
-	for (int i = 0; i < COMMAND_LIST_SIZE; i++) {
-		if (incString.substring(0,commandWordInfo[i].commandWordLen) == commandWordInfo[i].commandWord) {
-			rSerial.print("Command word detected: ");
-			rSerial.println(commandWordInfo[i].commandWord);
-			result = parseCommandString(incString, commandWordInfo[i].numOfArgs, incString.length(),commandWordInfo[i].commandWordLen);
-			if (result.errorStatus) {
-				return result;
-			}
-			result.commandIndex = i;
-			for (int j = 0; j < commandWordInfo[i].numOfArgs; j++) {
-				if (commandWordInfo[i].lowerConst[j] > result.args[j] || commandWordInfo[i].upperConst[j] < result.args[j]) {
-					result.errorStatus = E_CONSTRAINT;
-					rSerial.print("Value given for argument: ");
-					rSerial.print(j,DEC);
-					rSerial.println(" was off.");
-					rSerial.println("Constraints:");
-					rSerial.print("Lower: ");
-					rSerial.println(commandWordInfo[i].lowerConst[j]);
-					rSerial.print("Upper: ");
-					rSerial.println(commandWordInfo[i].upperConst[j]);
-					rSerial.print("Input was: ");
-					rSerial.println(result.args[j]);
-					return result;
-				}
-			}
-			return result;
-		}
-	}
-	result.errorStatus = E_NOTFOUND;
-  rSerial.println("Command not found.");
-	return result;
-}
 
 /*
  * This function handles all the servo (aka model movement) funtions.
@@ -528,6 +418,7 @@ void sendServoCommand(unsigned long *timers, parseResult &result, commandWordInf
 		rSerial.println("Unrecognized servo command.");
 	}
 }
+
 // Sensor commands operate via a tasklist that contains the number of steps to take and in what direction. Steps are taken every other loop.
 // All values are relative to the home position.
 void sendSensorCommand(unsigned long *timers, parseResult &result, commandWordInfoStruct *commandWordInfo, int *sensorTasklist, HardwareSerial &rSerial) {
@@ -536,8 +427,9 @@ void sendSensorCommand(unsigned long *timers, parseResult &result, commandWordIn
 	int stepsToTake = targetPos - currentPos;
 	sensorTasklist[SENSOR_STEPS] = stepsToTake;
 }
+
 // Heating commands drive a transistor-pmos array to control 12V PWM to the models. Full 255 is not allowed due to current concerns.
-void sendHeatingCommand(unsigned long *timers, heatingInfoStruct &heatingInfo, parseResult &result, commandWordInfoStruct *commandWordInfo, HardwareSerial &rSerial) {
+void sendHeatingCommand(unsigned long *timers, parseResult &result, commandWordInfoStruct *commandWordInfo, heatingInfoStruct &heatingInfo, HardwareSerial &rSerial) {
 	String cmdWord = commandWordInfo[result.commandIndex].commandWord;
 	if (cmdWord == "heatc") {
 		int heatActual = map(result.args[0],0,100,0,200);
@@ -561,6 +453,131 @@ void sendHeatingCommand(unsigned long *timers, heatingInfoStruct &heatingInfo, p
 		timers[HEATING_TIMER] = millis();
 	}
 }
+
+/*
+ * Function for handling type 5 commands, which is the group for core user functions that don't fit in the other categories.
+ */
+void sendControlCommand(unsigned long *timers, parseResult result, commandWordInfoStruct *commandWordInfo, ringBufferInfoStruct &ringBufferInfo, HardwareSerial &rSerial, homeInfoStruct &homeInfo, int *sensorTasklist) {
+  String cmdWord = commandWordInfo[result.commandIndex].commandWord;
+  if (cmdWord == "homexy") {
+    // Command to home the XY plane. This function has conditionals in the xy
+    // Note: The ringbuffer is flushed and no new commands will be accepted while homing.
+    ringBufferInfo.commandCount = 0;
+    ringBufferInfo.ringInputIndex = 0;
+    ringBufferInfo.ringOutputIndex = 0;
+    injectCommand(ringBufferInfo,"rfs(1,0)");
+    injectCommand(ringBufferInfo,"rfs(2,0)");
+    // Ignore 2 replies from the motor before actually reading the contents.
+    homeInfo.replyCount = 2;
+    homeInfo.homeXFlag = 1;
+    // After homing is done this allows xypos command
+    homeInfo.homedFlag = 1;
+  }
+  else if (cmdWord == "homesen") {
+    // Homes sensor head to 0.
+    homeInfo.sensorHomeFlag = 1;
+    sensorTasklist[SENSOR_STEPS] = -30000;
+  }
+  else if (cmdWord == "xypos") {
+    // Xypos breaks down the position to separate X and Y move commands.
+    // This function is not allowed until the device is homed.
+    // BUG: If the steppers were unresponsive during "homexy" command, the machine will
+    //      still consider itself homed.
+    if (homeInfo.homedFlag) {
+      String command1_1 = "mvp(1,";
+      String command2_1 = "mvp(2,";
+      String command2 = ")";
+      String full;
+      char tempHolder[CMD_BUFFER_LEN] = {0};
+      full = command1_1 + (long)(((float)(result.args[0] + X_OFFSET)) * STEPS_TO_MM) + command2;
+      full.toCharArray(tempHolder,CMD_BUFFER_LEN);
+      rSerial.println("Sending the following PANdrive commands:");
+      injectCommand(ringBufferInfo,tempHolder);
+      rSerial.println(full);
+      full = command2_1 + (long)(((float)(result.args[1] + Y_OFFSET)) * STEPS_TO_MM) + command2;
+      full.toCharArray(tempHolder,CMD_BUFFER_LEN);
+      rSerial.println(full);
+      injectCommand(ringBufferInfo,tempHolder);
+      rSerial.print("Moving to position (");
+      rSerial.print(result.args[0]);
+      rSerial.print(",");
+      rSerial.print(result.args[1]);
+      rSerial.println(").");
+    }
+    else {
+      rSerial.println("Command refused. Please home the device before using the homexy command.");
+    }
+  }
+  else if (cmdWord == "help") {
+    rSerial.println("Input commands by typing command, followed by");
+    rSerial.println("the arguments separated by commas.");
+    rSerial.println("Example command: \"xypos(200,100)\"");
+    rSerial.println("Printing commands with the related");
+    rSerial.println("number of args and their constraints");
+    rSerial.println("See documentation for full description.");
+    for (int i = 0; i < COMMAND_LIST_SIZE; i++) {
+      rSerial.print(commandWordInfo[i].commandWord);
+      rSerial.print(" # of args: ");
+      rSerial.println(commandWordInfo[i].numOfArgs);
+      if (commandWordInfo[i].numOfArgs > 0) {
+        for (int j = 0; j < commandWordInfo[i].numOfArgs; j++) {
+          rSerial.print("Arg ");
+          rSerial.print(j);
+          rSerial.print(" constraints: [");
+          rSerial.print(commandWordInfo[i].lowerConst[j]);
+          rSerial.print(",");
+          rSerial.print(commandWordInfo[i].upperConst[j]);
+          rSerial.println("]");
+        }
+      }
+      rSerial.println("----------------");
+    } 
+  }
+}
+
+/*
+ * Function to loop through stepper driver -> Arduino serial
+ * 
+ * The function appends serial input to a buffer until a newline
+ * character is met, which causes the newCmd flag to be set and
+ * the buffer index to reset. See getCommandInfo in RigSoftware.h.
+ */
+commandInfo getReply(commandInfo info, HardwareSerial &rSerial)
+{
+  char currentByte = 0;
+  while(rSerial.available() > 0)
+  {
+    if (info.dataIndex > CMD_BUFFER_LEN - 2) {
+      info.errorNmbr = E_BUFFER_FULL;
+      return info;
+    }
+    currentByte = rSerial.read();
+    info.cmdBuffer[info.dataIndex] = currentByte;
+    info.dataIndex++;
+    if (info.dataIndex == STEPPER_LEN) {
+      info.newCmd = 1;
+      //info.dataIndex = 0;
+      int checksum = 0;
+      for (int i = 0; i < STEPPER_LEN - 1; i++) {
+        checksum += info.cmdBuffer[i];
+        //Serial.println(info.cmdBuffer[i],DEC);
+      }
+      /*
+      Serial.println("CheckSums");
+      Serial.println(checksum,DEC);
+      Serial.println(info.cmdBuffer[STEPPERLEN - 1],DEC);
+      Serial.println(info.cmdBuffer[STEPPERLEN],DEC);
+      */
+      if (checksum != info.cmdBuffer[STEPPER_LEN - 1]) {
+        info.errorNmbr = E_CHECKSUM_OFF;
+        rSerial.println("Checksum was off");
+      }
+    }
+  }
+  return info;
+}
+
+
 // Function to display message from the PD steppers, or trash is some slipped through.
 void displayReply(commandInfo replyInfo, HardwareSerial &rSerial) {
 	rSerial.print(replyInfo.cmdBuffer[0],DEC);
@@ -671,25 +688,8 @@ void servoLoop(servoInfoStruct &servoInfo, unsigned long *timers) {
 		}	
 	}
 }
-// This function inserts commands to the ringbuffer. This is used all around to peacefully add commands to execute regardless of where it's called.
-void injectCommand(ringBufferInfoStruct &ri, char *command) {
-	strcpy(ri.cmdRingBuffer[ri.ringInputIndex],command);
-	ri.ringInputIndex += 1;
-	if (ri.ringInputIndex >= CMD_RING_BUFFER_LEN) {
-		ri.ringInputIndex = 0;
-	}
-	ri.commandCount += 1;
-}
-// Grab a command from the ring buffer.
-String grabRingBufferCommand(ringBufferInfoStruct &ri) {
-	String incCommand = String(ri.cmdRingBuffer[ri.ringOutputIndex]);
-	ri.ringOutputIndex += 1;
-	if (ri.ringOutputIndex >= CMD_RING_BUFFER_LEN) {
-		ri.ringOutputIndex = 0;
-	}
-	ri.commandCount -= 1;
-	return incCommand;
-}
+
+
 // This function asks if the PD steppers have reached the left limit switch yet. The spam repeats until something is found.
 void homeLoop(ringBufferInfoStruct &ringBufferInfo, unsigned long *timers, homeInfoStruct &homeInfo) {	
 	if (timers[HOME_TIMER] + HOME_DELAY < timers[LOOP_TIMER]) {

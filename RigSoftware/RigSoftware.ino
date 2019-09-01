@@ -1,3 +1,6 @@
+/*
+ * Written by Ville Hiltunen (2019) villejhiltunen@gmail.com under MIT license.
+ */
 
 #include "RigSoftware.h"
 #include <Servo.h>
@@ -178,7 +181,7 @@ void loop() {
 					sendSensorCommand(timers, result, commandWordInfo, sensorTasklist, Serial);
 					break;		
 				case 4:
-					sendHeatingCommand(timers, heatingInfo, result, commandWordInfo, Serial);
+					sendHeatingCommand(timers, result, commandWordInfo, heatingInfo, Serial);
 					break;
 				case 5:
 					sendControlCommand(timers, result, commandWordInfo, ringBufferInfo, Serial, homeInfo, sensorTasklist);
@@ -208,29 +211,23 @@ void loop() {
 	  	Serial.println("Displaying mangled reply: ");
 	  	replyInfo.newCmd = 1;  	
 	  }
-	  if (replyInfo.newCmd) {
+	  if (replyInfo.newCmd) { 
 	  	if (homeInfo.homeXFlag && homeInfo.replyCount > 0) {
+        // If we are ignoring repliess, do so and subtract from the reply count.
 	  		homeInfo.replyCount -= 1;
 	  	}
 	  	if (homeInfo.homeXFlag && homeInfo.replyCount == 0) {
 	  		if (((long*)(replyInfo.cmdBuffer))[1] == 0 && replyInfo.cmdBuffer[3] == 13 && replyInfo.cmdBuffer[1] == 1) {
+          // If we are not ignoring replies and were are homing, we will ask if x-axis is homed until it is
+          // Then we do the same for y-axis
 	  			homeInfo.homeXFlag = 0;
 	  			homeInfo.homeYFlag = 1;
 	  		}
 	  	}
 	  	else if (homeInfo.homeYFlag) {
 	  		if (((long*)(replyInfo.cmdBuffer))[1] == 0 && replyInfo.cmdBuffer[3] == 13 && replyInfo.cmdBuffer[1] == 2) {
-          
+          // If we are here, y-axis homing is done as well now
 	  			homeInfo.homeYFlag = 0;
-          /*
-          String command1 = "xypos(";
-          String command2 = ",";
-          String command3 = ")";
-          String full;
-          char tempHolder[CMD_BUFFER_LEN] = {0};
-          full = command1 + X_OFFSET + command2 + Y_OFFSET + command3;
-          full.toCharArray(tempHolder,CMD_BUFFER_LEN);
-          */
           // At the end of the homing sequence, we put the sensor over the corner of the board.
           injectCommand(ringBufferInfo, "xypos(0,0)");
 	  		}
