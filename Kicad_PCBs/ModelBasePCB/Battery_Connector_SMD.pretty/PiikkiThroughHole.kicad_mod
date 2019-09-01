@@ -1,0 +1,13 @@
+(module PiikkiThroughHole (layer F.Cu) (tedit 5D4975CC)
+  (fp_text reference J2 (at -5.08 0.5) (layer F.SilkS) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_text value Conn_01x05_Male (at 0 -0.5) (layer F.Fab)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (pad 1 thru_hole circle (at -5.08 0) (size 1.8 1.8) (drill 0.85) (layers *.Cu *.Mask))
+  (pad 2 thru_hole circle (at -2.54 0) (size 1.8 1.8) (drill 0.85) (layers *.Cu *.Mask))
+  (pad 3 thru_hole circle (at 0 0) (size 1.8 1.8) (drill 0.85) (layers *.Cu *.Mask))
+  (pad 4 thru_hole circle (at 2.54 0) (size 1.8 1.8) (drill 0.85) (layers *.Cu *.Mask))
+  (pad 5 thru_hole circle (at 5.08 0) (size 1.8 1.8) (drill 0.85) (layers *.Cu *.Mask))
+)
