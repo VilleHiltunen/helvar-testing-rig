@@ -34,7 +34,7 @@
  */
 commandWordInfoStruct commandWordInfo[COMMAND_LIST_SIZE] = {
 //Type	Cmd					Len	Args	arg_Field			Lower constraints			Higher constraints		Prefilled MI
-	{1,		"ror",			3,	2,		{0,4,},				{1,-2047,},						{2,2047,},						{0,1,},},
+	//{1,		"ror",			3,	2,		{0,4,},				{1,-2047,},						{2,2047,},						{0,1,},},
 	{1,		"mst",			3,	1,		{0,},					{1,},									{2,},									{0,3,},},
 	{1,		"mvp",			3,	2,		{0,4,},				{1,-2147483648,},			{2,2147483647,},			{0,4,},},
 	{1,		"gap",			3,	2,		{0,2,},				{1,},									{2,255,},							{0,6,},},

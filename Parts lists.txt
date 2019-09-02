@@ -1,0 +1,69 @@
+Part lists
+Frame:
+4x 800mm length piece
+4x 900mm length piece
+4x 1200mm length piece
+4x  3-way corner connector pieces
+12x M8x30 hex-key bolts
+4x plastic covers for 3-way corner pieces
+8x 90° profile connector pieces
+4x profile end cover pieces
+
+Movement system:
+2x Trinamic PD42-3-1141
+1x some stepper motor found at sähköpaja
+2x sliders for i-type aluminium profile
+6x micro switches for limit switches
+35mm Jopo quick release seat fastener
+400*17mm aluminium pipe
+15.5*25*8mm Linear bearing
+4x 15*24*8mm Linear bearing
+6x 24 tooth 3M pulleys with 8mm bore
+2x 24 tooth 3M pulleys with 6mm bore
+2x 6mm into 5mm pulley bore reducer
+3M 88 tooth timing belt
+7m piece of 3M timing belt cut into suitable length pieces
+2x 915*8mm round steel shaft
+2x 850*8mm round steel shaft
+891*8mm round steel shaft
+108*8mm round steel shaft
+15*8mm round steel shaft
+2x aluminium mounts for support rail
+3d printed pieces (see sensor_testing_rig_asm.stp for details)
+3mm acrylic laser cut pieces (see sensor_testing_rig_asm.stp for details)
+Lots of nuts and bolts
+
+Testin unit:
+3 mm acrylic (plastic).
+0.6 mm PCB
+Pin header 1*5 (R2.54) 
+P0900 analog micro servo (K-Power).
+Aluminium rod (diameter 19 mm or larger).
+33 ohm resistor (Royal Ohm).
+3 mm threaded rod (steel).
+2x M2*10mm screw
+2x M2 nut
+2x M3*4mm screw
+4x M3 nyloc nut
+2x M4*20mm screw (countersunk head)
+M4 nyloc nut
+M4 nylon tightening nut
+small zip tie
+heat-shrink tubing
+0.8 mm steel wire (to attach head to the servo) 
+insulated copper wire
+3x small neodym magnets
+
+Base plate:
+64x avx 3 way 9155 standard battery connector
+32x 0.5A reed switch
+32x 1A reed switch
+64 magnets
+4x backbone pcb
+32x mounting slot pcb
+8 core 2.54 pitch flat cable
+32 core 1.27 pitch flat cable
+cable
+laser cut acrylic pieces
+32x cat shaped handles
+

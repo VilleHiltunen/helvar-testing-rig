@@ -53,7 +53,7 @@
 /*
  * The number of user commands recognized by the software
  */
-#define COMMAND_LIST_SIZE						24
+#define COMMAND_LIST_SIZE						23
 /*
  * Timer and timing definitions
  */
